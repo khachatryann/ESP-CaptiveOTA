@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP OTA Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            margin: 50px auto;
+            padding: 20px;
+            width: 50%;
+            background: white;
+            box-shadow: 0px 0px 10px 0px #00000033;
+            border-radius: 10px;
+        }
+        input, button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload Firmware (.bin)</h2>
+        <input type="file" id="fileInput" accept=".bin"><br>
+        <button onclick="uploadFile()">Upload</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files.length) {
+        alert("Please select a .bin file first");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const chunkSize = 1024; // Exactly 1024-byte chunks
+    let offset = 0;
+
+    document.getElementById('status').innerText = "Starting upload...";
+
+    function sendChunk() {
+        if (offset >= file.size) {
+            document.getElementById('status').innerText = "Upload complete! Device will reboot shortly.";
+            return;
+        }
+
+        let chunk = file.slice(offset, offset + chunkSize);
+        let isLastChunk = offset + chunkSize >= file.size;
+
+        fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/octet-stream" },
+            body: chunk
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.text();
+        })
+        .then(() => {
+            offset += chunk.size;
+            const percentage = Math.round((offset / file.size) * 100);
+            document.getElementById('status').innerText = `Uploading... ${percentage}%`;
+
+            // Send the next chunk with minimal delay
+            if (!isLastChunk) setTimeout(sendChunk, 10); // Faster upload
+        })
+        .catch(error => {
+            document.getElementById('status').innerText = "Upload failed: " + error;
+            console.error("Upload error:", error);
+        });
+    }
+
+    sendChunk();
+}
+</script>
+</body>
+</html>

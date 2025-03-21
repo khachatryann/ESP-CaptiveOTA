@@ -1,0 +1,30 @@
+# Compiled binaries
+*.bin
+*.elf
+*.hex
+
+# Build files
+build/
+sdkconfig
+sdkconfig.old
+
+# Arduino and PlatformIO
+.pio/
+.vscode/
+.arduino15/
+*.eep
+*.lst
+*.map
+*.bak
+*.d
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# MacOS/Linux system files
+.DS_Store
+._*
+Thumbs.db
